@@ -1,0 +1,10 @@
+[package]
+name = "romcat"
+version = "0.1.0"
+edition = "2024"
+description = "Video game ROM catalog tool - identifies ROM types, game names, and metadata"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+comfy-table = "7"
+md5 = "0.7"
