@@ -1,0 +1,6 @@
+* romcat
+Print information from your ROM files.
+* Warning
+This is entirely generated with Claude Opus. I wanted to try it out and this was the idea I came up with. I have yet to manually review the code, it may have serious problems. No warranty implied.
+* Usage
+~romcat <file1> <file2> <file3>~
