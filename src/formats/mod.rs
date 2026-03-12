@@ -2,10 +2,12 @@ pub mod chd;
 pub mod gb;
 pub mod gba;
 pub mod n64;
+pub mod n3ds;
 pub mod nds;
 pub mod nes;
 pub mod ps1;
 pub mod snes;
+pub mod wii;
 
 use std::fmt;
 
@@ -21,6 +23,11 @@ pub enum RomFormat {
     Snes,
     Nds,
     Ps1,
+    Wii,
+    WiiWbfs,
+    WiiRvz,
+    WiiWia,
+    N3ds,
     Chd,
     Unknown,
 }
@@ -37,6 +44,11 @@ impl fmt::Display for RomFormat {
             RomFormat::Snes => write!(f, "SNES"),
             RomFormat::Nds => write!(f, "NDS"),
             RomFormat::Ps1 => write!(f, "PS1"),
+            RomFormat::Wii => write!(f, "Wii"),
+            RomFormat::WiiWbfs => write!(f, "Wii (WBFS)"),
+            RomFormat::WiiRvz => write!(f, "Wii (RVZ)"),
+            RomFormat::WiiWia => write!(f, "Wii (WIA)"),
+            RomFormat::N3ds => write!(f, "3DS"),
             RomFormat::Chd => write!(f, "CHD"),
             RomFormat::Unknown => write!(f, "Unknown"),
         }

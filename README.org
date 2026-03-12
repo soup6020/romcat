@@ -1,0 +1,99 @@
+#+title: romcat
+
+Video game ROM identification tool. Reads ROM and disc image files, detects their format, extracts header metadata, and displays everything in a table.
+
+* Usage
+
+#+begin_src sh
+romcat [OPTIONS] <file>...
+#+end_src
+
+Pass one or more ROM files as arguments. Output is a coloured table with adaptive columns --- columns like Cart ID, Mapper/MBC, and Expansion Chip only appear when at least one file has data for them.
+
+#+begin_src sh
+romcat mario.z64 tetris.gb spyro.bin starfox.sfc mk7.3ds
+#+end_src
+
+** Options
+
+| Flag        | Description                                                      |
+|-------------+------------------------------------------------------------------|
+| =--no-hash= | Skip MD5 computation (much faster for large disc images)         |
+| =-h=        | Print help                                                       |
+| =-V=        | Print version                                                    |
+
+Only the first 1 MB of each file is read for format detection. The MD5 hash requires reading the full file; use =--no-hash= to skip it when working with large Wii ISOs or PS1 disc images.
+
+* Supported Formats
+
+| System         | Extensions             | Game Name | Cart ID | Mapper | Expansion Chip |
+|----------------+------------------------+-----------+---------+--------+----------------|
+| NES            | =.nes=                 | ---       | ---     | Yes    | ---            |
+| SNES           | =.sfc=, =.smc=         | Yes       | ---     | Yes    | Yes            |
+| N64            | =.z64=, =.n64=, =.v64= | Yes       | Yes     | ---    | ---            |
+| Game Boy       | =.gb=                  | Yes       | ---     | Yes    | ---            |
+| Game Boy Color | =.gbc=                 | Yes       | ---     | Yes    | ---            |
+| GBA            | =.gba=                 | Yes       | Yes     | ---    | ---            |
+| NDS            | =.nds=                 | Yes       | Yes     | ---    | ---            |
+| 3DS            | =.3ds=, =.cci=         | Yes       | Yes     | ---    | ---            |
+| Wii            | =.iso=                 | Yes       | Yes     | ---    | ---            |
+| Wii (WBFS)     | =.wbfs=                | Yes       | Yes     | ---    | ---            |
+| Wii (RVZ)      | =.rvz=                 | Yes       | Yes     | ---    | ---            |
+| Wii (WIA)      | =.wia=                 | Yes       | Yes     | ---    | ---            |
+| PS1            | =.bin=, =.iso=         | Yes       | Yes     | ---    | ---            |
+| CHD            | =.chd=                 | ---       | ---     | Yes    | ---            |
+
+** Notes
+
+- *NES*: iNES and NES 2.0 headers are both detected. Game name is not available (iNES has no title field). Over 30 named mappers.
+- *SNES*: Heuristic detection via LoROM/HiROM checksum complement validation. Handles the 512-byte SMC copier header. Expansion chips include DSP-1 through DSP-4, SuperFX (GSU), SA-1, Cx4, SPC7110, S-DD1, OBC-1, and more.
+- *N64*: Detects all three byte orderings --- big-endian (=.z64=), little-endian (=.n64=), and byte-swapped (=.v64=). Title and cart ID are read after normalising to big-endian.
+- *Game Boy / GBC*: Identified by the Nintendo logo bitmap. GBC distinguished by the CGB flag. Cartridge type table covers MBC1 through MBC7, MMM01, HuC1/HuC3, and more.
+- *GBA*: Identified by the Nintendo logo and the fixed =0x96= byte. Game code shown separately from title.
+- *NDS*: Reads the full English title from the Icon/Title banner (UTF-16LE) when available, otherwise falls back to the 12-byte internal title.
+- *3DS*: Parses the NCSD/NCCH headers and reads the game title from the SMDH icon in ExeFS. Falls back to the product code for encrypted dumps.
+- *Wii*: Supports raw ISO, WBFS containers, and RVZ/WIA compressed images. All variants expose the 6-byte disc ID and game title from the Wii disc header.
+- *PS1*: Supports both cooked (2048 B/sector) =.iso= and raw (2352 B/sector) =.bin= images. Parses the ISO 9660 filesystem to find =SYSTEM.CNF= and extract the game serial (e.g. =SCUS-94228=). Volume identifier used as game name.
+- *CHD*: Reads the MAME compressed hunk header (versions 1--5). Walks the metadata linked list to identify disc type (CD-ROM, GD-ROM, hard disk). Game identity is not available without decompression.
+
+* Output Columns
+
+| Column         | Description                                            |
+|----------------+--------------------------------------------------------|
+| File           | Filename                                               |
+| Format         | Detected system / container (colour-coded)             |
+| Game Name      | Title extracted from header                            |
+| Cart ID        | Cartridge / game code (N64, GBA, NDS, 3DS, Wii, PS1)  |
+| Endianness     | Byte order of the ROM data                             |
+| Size           | Human-readable file size                               |
+| Mapper/MBC     | NES mapper, SNES mapping mode, GB cartridge type, etc. |
+| Expansion Chip | SNES coprocessors (DSP, SuperFX, SA-1, ...)            |
+| MD5            | MD5 hash of the entire file                            |
+
+* Building
+
+Requires Rust. A Nix flake is provided.
+
+#+begin_src sh
+# With Nix
+nix build
+# or
+nix develop
+cargo build --release
+
+# Without Nix
+cargo build --release
+#+end_src
+
+* Dependencies
+
+| Crate       | Purpose                   |
+|-------------+---------------------------|
+| clap        | CLI argument parsing      |
+| comfy-table | Terminal table rendering  |
+| md-5        | MD5 hash computation      |
+
+All format detection is implemented from scratch with no external ROM-parsing libraries.
+
+* Warning
+This was written almost exclusively by Claude Opus 4.6. I make no claims about the reliability or quality of the code therein, no warranty is implied. This software may cause cancer or reproductive harm in the state of California. 

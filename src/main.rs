@@ -21,6 +21,10 @@ struct Cli {
     /// ROM files to analyze
     #[arg(required = true)]
     files: Vec<PathBuf>,
+
+    /// Skip MD5 hash computation (faster for large files)
+    #[arg(long)]
+    no_hash: bool,
 }
 
 /// Pick a colour for a given ROM format.
@@ -34,6 +38,11 @@ fn format_color(format: &formats::RomFormat) -> Color {
         formats::RomFormat::Snes => Color::Blue,
         formats::RomFormat::Nds => Color::Cyan,
         formats::RomFormat::Ps1 => Color::DarkCyan,
+        formats::RomFormat::Wii
+        | formats::RomFormat::WiiWbfs
+        | formats::RomFormat::WiiRvz
+        | formats::RomFormat::WiiWia => Color::DarkBlue,
+        formats::RomFormat::N3ds => Color::DarkGreen,
         formats::RomFormat::Chd => Color::DarkMagenta,
         formats::RomFormat::Unknown => Color::DarkGrey,
     }
@@ -50,6 +59,7 @@ fn build_table(roms: &[RomInfo]) -> Table {
     let has_cart_id = roms.iter().any(|r| r.cart_id.is_some());
     let has_mapper = roms.iter().any(|r| r.mapper.is_some());
     let has_expansion = roms.iter().any(|r| r.expansion_chip.is_some());
+    let has_md5 = roms.iter().any(|r| r.md5.is_some());
 
     // Build header row
     let mut headers: Vec<Cell> = vec![
@@ -68,7 +78,9 @@ fn build_table(roms: &[RomInfo]) -> Table {
     if has_expansion {
         headers.push(Cell::new("Expansion Chip").fg(Color::White));
     }
-    headers.push(Cell::new("MD5").fg(Color::White));
+    if has_md5 {
+        headers.push(Cell::new("MD5").fg(Color::White));
+    }
     table.set_header(headers);
 
     let dash = "\u{2014}";
@@ -99,7 +111,11 @@ fn build_table(roms: &[RomInfo]) -> Table {
                 Cell::new(rom.expansion_chip.as_deref().unwrap_or(dash)).fg(Color::Yellow),
             );
         }
-        row.push(Cell::new(&rom.md5).fg(Color::DarkGrey));
+        if has_md5 {
+            row.push(
+                Cell::new(rom.md5.as_deref().unwrap_or("")).fg(Color::DarkGrey),
+            );
+        }
         table.add_row(row);
     }
 
@@ -112,7 +128,7 @@ fn main() {
     let mut had_errors = false;
 
     for path in &cli.files {
-        match rom::analyze(path) {
+        match rom::analyze(path, !cli.no_hash) {
             Ok(info) => roms.push(info),
             Err(e) => {
                 eprintln!("Error reading {}: {e}", path.display());
