@@ -27,22 +27,15 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
     }
 
     // Game title: 12 bytes at 0xA0
-    let title = clean_title(&data[0xA0..0xAC]);
+    let game_name = clean_title(&data[0xA0..0xAC]);
 
     // Game code: 4 bytes at 0xAC (e.g. "AXVE" for Pokemon Ruby US)
-    let game_code = clean_title(&data[0xAC..0xB0]);
-
-    // Combine title and game code for a more informative name
-    let game_name = match (title, game_code) {
-        (Some(t), Some(c)) => Some(format!("{t} ({c})")),
-        (Some(t), None) => Some(t),
-        (None, Some(c)) => Some(c),
-        (None, None) => None,
-    };
+    let cart_id = clean_title(&data[0xAC..0xB0]);
 
     Some(ParsedRom {
         format: RomFormat::Gba,
         game_name,
+        cart_id,
         endianness: Endianness::Little,
         mapper: None, // GBA doesn't use mappers
         expansion_chip: None,

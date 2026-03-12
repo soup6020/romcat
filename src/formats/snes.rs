@@ -213,6 +213,7 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
     Some(ParsedRom {
         format: RomFormat::Snes,
         game_name: header.title,
+        cart_id: None, // SNES has no standardised cart ID
         endianness: Endianness::Little,
         mapper: Some(mapper.to_string()),
         expansion_chip: expansion.map(|s| s.to_string()),

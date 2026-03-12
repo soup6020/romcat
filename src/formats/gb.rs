@@ -73,6 +73,7 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
     Some(ParsedRom {
         format,
         game_name: title,
+        cart_id: None, // GB/GBC has no standardised cart ID
         endianness: Endianness::Little,
         mapper: Some(mapper.to_string()),
         expansion_chip: None,

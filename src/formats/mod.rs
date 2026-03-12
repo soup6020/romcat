@@ -1,7 +1,10 @@
+pub mod chd;
 pub mod gb;
 pub mod gba;
 pub mod n64;
+pub mod nds;
 pub mod nes;
+pub mod ps1;
 pub mod snes;
 
 use std::fmt;
@@ -16,6 +19,9 @@ pub enum RomFormat {
     GameBoy,
     GameBoyColor,
     Snes,
+    Nds,
+    Ps1,
+    Chd,
     Unknown,
 }
 
@@ -29,6 +35,9 @@ impl fmt::Display for RomFormat {
             RomFormat::GameBoy => write!(f, "Game Boy"),
             RomFormat::GameBoyColor => write!(f, "Game Boy Color"),
             RomFormat::Snes => write!(f, "SNES"),
+            RomFormat::Nds => write!(f, "NDS"),
+            RomFormat::Ps1 => write!(f, "PS1"),
+            RomFormat::Chd => write!(f, "CHD"),
             RomFormat::Unknown => write!(f, "Unknown"),
         }
     }
@@ -59,6 +68,7 @@ impl fmt::Display for Endianness {
 pub struct ParsedRom {
     pub format: RomFormat,
     pub game_name: Option<String>,
+    pub cart_id: Option<String>,
     pub endianness: Endianness,
     pub mapper: Option<String>,
     pub expansion_chip: Option<String>,

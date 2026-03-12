@@ -5,7 +5,9 @@ use std::path::PathBuf;
 use std::process;
 
 use clap::Parser;
-use comfy_table::{presets::UTF8_FULL, ContentArrangement, Table};
+use comfy_table::modifiers::UTF8_ROUND_CORNERS;
+use comfy_table::presets::UTF8_FULL;
+use comfy_table::{Cell, CellAlignment, Color, ContentArrangement, Table};
 
 use rom::{format_size, RomInfo};
 
@@ -21,53 +23,83 @@ struct Cli {
     files: Vec<PathBuf>,
 }
 
+/// Pick a colour for a given ROM format.
+fn format_color(format: &formats::RomFormat) -> Color {
+    match format {
+        formats::RomFormat::Nes | formats::RomFormat::Nes2 => Color::Red,
+        formats::RomFormat::N64 => Color::Green,
+        formats::RomFormat::Gba => Color::Magenta,
+        formats::RomFormat::GameBoy => Color::DarkYellow,
+        formats::RomFormat::GameBoyColor => Color::Yellow,
+        formats::RomFormat::Snes => Color::Blue,
+        formats::RomFormat::Nds => Color::Cyan,
+        formats::RomFormat::Ps1 => Color::DarkCyan,
+        formats::RomFormat::Chd => Color::DarkMagenta,
+        formats::RomFormat::Unknown => Color::DarkGrey,
+    }
+}
+
 fn build_table(roms: &[RomInfo]) -> Table {
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
+        .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic);
 
     // Determine which optional columns have data
+    let has_cart_id = roms.iter().any(|r| r.cart_id.is_some());
     let has_mapper = roms.iter().any(|r| r.mapper.is_some());
     let has_expansion = roms.iter().any(|r| r.expansion_chip.is_some());
 
     // Build header row
-    let mut headers: Vec<&str> = vec!["File", "Format", "Game Name", "Endianness", "Size"];
+    let mut headers: Vec<Cell> = vec![
+        Cell::new("File").fg(Color::White),
+        Cell::new("Format").fg(Color::White),
+        Cell::new("Game Name").fg(Color::White),
+    ];
+    if has_cart_id {
+        headers.push(Cell::new("Cart ID").fg(Color::White));
+    }
+    headers.push(Cell::new("Endianness").fg(Color::White));
+    headers.push(Cell::new("Size").fg(Color::White));
     if has_mapper {
-        headers.push("Mapper/MBC");
+        headers.push(Cell::new("Mapper/MBC").fg(Color::White));
     }
     if has_expansion {
-        headers.push("Expansion Chip");
+        headers.push(Cell::new("Expansion Chip").fg(Color::White));
     }
-    headers.push("MD5");
+    headers.push(Cell::new("MD5").fg(Color::White));
     table.set_header(headers);
+
+    let dash = "\u{2014}";
 
     // Build data rows
     for rom in roms {
-        let mut row: Vec<String> = vec![
-            rom.file_name.clone(),
-            rom.format.to_string(),
-            rom.game_name.as_deref().unwrap_or("\u{2014}").to_string(),
-            rom.endianness.to_string(),
-            format_size(rom.file_size),
+        let color = format_color(&rom.format);
+
+        let mut row: Vec<Cell> = vec![
+            Cell::new(&rom.file_name),
+            Cell::new(rom.format.to_string()).fg(color),
+            Cell::new(rom.game_name.as_deref().unwrap_or(dash)).fg(Color::Cyan),
         ];
+        if has_cart_id {
+            row.push(Cell::new(rom.cart_id.as_deref().unwrap_or(dash)));
+        }
+        row.push(Cell::new(rom.endianness.to_string()));
+        row.push(
+            Cell::new(format_size(rom.file_size)).set_alignment(CellAlignment::Right),
+        );
         if has_mapper {
-            row.push(
-                rom.mapper
-                    .as_deref()
-                    .unwrap_or("\u{2014}")
-                    .to_string(),
-            );
+            row.push(Cell::new(
+                rom.mapper.as_deref().unwrap_or(dash),
+            ));
         }
         if has_expansion {
             row.push(
-                rom.expansion_chip
-                    .as_deref()
-                    .unwrap_or("\u{2014}")
-                    .to_string(),
+                Cell::new(rom.expansion_chip.as_deref().unwrap_or(dash)).fg(Color::Yellow),
             );
         }
-        row.push(rom.md5.clone());
+        row.push(Cell::new(&rom.md5).fg(Color::DarkGrey));
         table.add_row(row);
     }
 

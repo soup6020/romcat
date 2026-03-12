@@ -75,6 +75,7 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
     Some(ParsedRom {
         format,
         game_name: None, // iNES has no title field
+        cart_id: None,    // iNES has no cart ID field
         endianness: Endianness::Little,
         mapper: Some(mapper_name(mapper_id)),
         expansion_chip: None,

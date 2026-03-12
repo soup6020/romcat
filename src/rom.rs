@@ -10,6 +10,7 @@ pub struct RomInfo {
     pub file_size: u64,
     pub format: RomFormat,
     pub game_name: Option<String>,
+    pub cart_id: Option<String>,
     pub endianness: Endianness,
     pub mapper: Option<String>,
     pub expansion_chip: Option<String>,
@@ -66,15 +67,20 @@ pub fn analyze(path: &Path) -> Result<RomInfo, RomError> {
     let md5 = format!("{:x}", md5::compute(&data));
 
     // Try each format parser in order of specificity.
-    // NES and N64 have clear magic bytes so they go first.
-    // GBA has a fixed byte + logo check.
-    // GB/GBC has a logo check.
+    // CHD, NES, and N64 have clear magic bytes so they go first.
+    // NDS and GBA share the same Nintendo logo — NDS is tried first
+    // because it has additional validation (unit code, ARM9 offset).
+    // GB/GBC has a different logo check.
+    // PS1 relies on ISO 9660 + PLAYSTATION system identifier.
     // SNES is heuristic-based and goes last.
     let parsers: &[fn(&[u8]) -> Option<ParsedRom>] = &[
+        formats::chd::parse,
         formats::nes::parse,
         formats::n64::parse,
+        formats::nds::parse,
         formats::gba::parse,
         formats::gb::parse,
+        formats::ps1::parse,
         formats::snes::parse,
     ];
 
@@ -86,6 +92,7 @@ pub fn analyze(path: &Path) -> Result<RomInfo, RomError> {
             file_size,
             format: p.format,
             game_name: p.game_name,
+            cart_id: p.cart_id,
             endianness: p.endianness,
             mapper: p.mapper,
             expansion_chip: p.expansion_chip,
@@ -96,6 +103,7 @@ pub fn analyze(path: &Path) -> Result<RomInfo, RomError> {
             file_size,
             format: RomFormat::Unknown,
             game_name: None,
+            cart_id: None,
             endianness: Endianness::NotApplicable,
             mapper: None,
             expansion_chip: None,
