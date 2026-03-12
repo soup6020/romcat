@@ -1,7 +1,7 @@
 use super::{Endianness, ParsedRom, RomFormat};
 
-/// CHD magic: "McomprHD"
-const CHD_MAGIC: [u8; 8] = [0x4D, 0x63, 0x6F, 0x6D, 0x70, 0x72, 0x48, 0x44];
+/// CHD magic: "MComprHD"
+const CHD_MAGIC: [u8; 8] = [0x4D, 0x43, 0x6F, 0x6D, 0x70, 0x72, 0x48, 0x44];
 
 /// Minimum header size for any CHD version.
 const MIN_HEADER_SIZE: usize = 16;
