@@ -96,4 +96,4 @@ cargo build --release
 All format detection is implemented from scratch with no external ROM-parsing libraries.
 
 * Warning
-This was written almost exclusively by Claude Opus 4.6. I make no claims about the reliability or quality of the code therein, no warranty is implied. This software may cause cancer or reproductive harm in the state of California. 
+This was written almost exclusively by Claude Opus 4.6. I make no claims about the reliability or quality of the code therein, no warranty is implied. It was written purely because I wanted to see if Claude lives up to the hype. It seems to. This software may cause cancer or reproductive harm in the state of California. 
