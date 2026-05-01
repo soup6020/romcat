@@ -16,32 +16,32 @@ romcat mario.z64 tetris.gb spyro.bin starfox.sfc mk7.3ds
 
 ** Options
 
-| Flag        | Description                                                      |
-|-------------+------------------------------------------------------------------|
-| =--no-hash= | Skip MD5 computation (much faster for large disc images)         |
-| =-h=        | Print help                                                       |
-| =-V=        | Print version                                                    |
+| Flag      | Description                                              |
+|-----------+----------------------------------------------------------|
+| =--no-hash= | Skip MD5 computation (much faster for large disc images) |
+| =-h=        | Print help                                               |
+| =-V=        | Print version                                            |
 
 Only the first 1 MB of each file is read for format detection. The MD5 hash requires reading the full file; use =--no-hash= to skip it when working with large Wii ISOs or PS1 disc images.
 
 * Supported Formats
 
-| System         | Extensions             | Game Name | Cart ID | Mapper | Expansion Chip |
-|----------------+------------------------+-----------+---------+--------+----------------|
-| NES            | =.nes=                 | ---       | ---     | Yes    | ---            |
-| SNES           | =.sfc=, =.smc=         | Yes       | ---     | Yes    | Yes            |
+| System         | Extensions       | Game Name | Cart ID | Mapper | Expansion Chip |
+|----------------+------------------+-----------+---------+--------+----------------|
+| NES            | =.nes=             | ---       | ---     | Yes    | ---            |
+| SNES           | =.sfc=, =.smc=       | Yes       | ---     | Yes    | Yes            |
 | N64            | =.z64=, =.n64=, =.v64= | Yes       | Yes     | ---    | ---            |
-| Game Boy       | =.gb=                  | Yes       | ---     | Yes    | ---            |
-| Game Boy Color | =.gbc=                 | Yes       | ---     | Yes    | ---            |
-| GBA            | =.gba=                 | Yes       | Yes     | ---    | ---            |
-| NDS            | =.nds=                 | Yes       | Yes     | ---    | ---            |
-| 3DS            | =.3ds=, =.cci=         | Yes       | Yes     | ---    | ---            |
-| Wii            | =.iso=                 | Yes       | Yes     | ---    | ---            |
-| Wii (WBFS)     | =.wbfs=                | Yes       | Yes     | ---    | ---            |
-| Wii (RVZ)      | =.rvz=                 | Yes       | Yes     | ---    | ---            |
-| Wii (WIA)      | =.wia=                 | Yes       | Yes     | ---    | ---            |
-| PS1            | =.bin=, =.iso=         | Yes       | Yes     | ---    | ---            |
-| CHD            | =.chd=                 | ---       | ---     | Yes    | ---            |
+| Game Boy       | =.gb=              | Yes       | ---     | Yes    | ---            |
+| Game Boy Color | =.gbc=             | Yes       | ---     | Yes    | ---            |
+| GBA            | =.gba=             | Yes       | Yes     | ---    | ---            |
+| NDS            | =.nds=             | Yes       | Yes     | ---    | ---            |
+| 3DS            | =.3ds=, =.cci=       | Yes       | Yes     | ---    | ---            |
+| Wii            | =.iso=             | Yes       | Yes     | ---    | ---            |
+| Wii (WBFS)     | =.wbfs=            | Yes       | Yes     | ---    | ---            |
+| Wii (RVZ)      | =.rvz=             | Yes       | Yes     | ---    | ---            |
+| Wii (WIA)      | =.wia=             | Yes       | Yes     | ---    | ---            |
+| PS1            | =.bin=, =.iso=       | Yes       | Yes     | ---    | ---            |
+| CHD            | =.chd=             | ---       | ---     | Yes    | ---            |
 
 ** Notes
 
@@ -63,7 +63,7 @@ Only the first 1 MB of each file is read for format detection. The MD5 hash requ
 | File           | Filename                                               |
 | Format         | Detected system / container (colour-coded)             |
 | Game Name      | Title extracted from header                            |
-| Cart ID        | Cartridge / game code (N64, GBA, NDS, 3DS, Wii, PS1)  |
+| Cart ID        | Cartridge / game code (N64, GBA, NDS, 3DS, Wii, PS1)   |
 | Endianness     | Byte order of the ROM data                             |
 | Size           | Human-readable file size                               |
 | Mapper/MBC     | NES mapper, SNES mapping mode, GB cartridge type, etc. |
