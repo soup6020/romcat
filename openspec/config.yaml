@@ -1,0 +1,84 @@
+schema: spec-driven
+
+context: |
+  Project: romcat, a small command-line program for identifying video game ROMs and disc images and printing header metadata in a terminal table.
+
+  Current product behavior:
+  - The binary accepts one or more file paths and an optional --no-hash flag.
+  - For each readable file it reads at most the first 1 MiB for content-based detection, independent of filename extension.
+  - It tries parsers in this order: CHD, NES, N64, Wii, Nintendo 3DS, Nintendo DS, Game Boy Advance, Game Boy/Game Boy Color, PlayStation 1, then SNES.
+  - Readable but unrecognized files are reported as Unknown rather than treated as errors.
+  - Unless --no-hash is supplied, it streams the complete file through MD5 using a 64 KiB buffer.
+  - Results are printed in input order as a colored UTF-8 table. Cart ID, Mapper/MBC, Expansion Chip, and MD5 columns appear only when at least one result has that field.
+  - Individual I/O failures are printed to stderr, processing continues for remaining files, and any such failure makes the final exit status 1.
+
+  Supported inputs and metadata:
+  - NES: iNES and NES 2.0; mapper number/name.
+  - SNES: LoROM/HiROM-style heuristic header detection, optional 512-byte copier header, mapping mode, and expansion coprocessor.
+  - Nintendo 64: .z64, .n64, and .v64 byte orders; title and cartridge ID.
+  - Game Boy/Game Boy Color: Nintendo-logo detection, title, CGB distinction, and cartridge/MBC type.
+  - Game Boy Advance: Nintendo-logo and fixed-byte detection; title and four-character game code.
+  - Nintendo DS: validated header; English UTF-16LE banner title when reachable, otherwise internal title; game code.
+  - Nintendo 3DS cartridge images: NCSD/NCCH; product code and SMDH title when reachable, with product-code fallback.
+  - Wii: raw ISO, WBFS, RVZ, and WIA; six-byte disc ID and title.
+  - PlayStation 1: cooked 2048-byte ISO sectors and raw 2352-byte sectors; ISO 9660 volume identifier and SYSTEM.CNF serial.
+  - CHD versions 1 through 5: CHD version and, when metadata is reachable, generic CD-ROM/GD-ROM/hard-disk type.
+
+  Technology and repository layout:
+  - Rust 2024 edition; this is a single binary crate, currently version 0.2.0.
+  - src/main.rs owns clap argument parsing, result accumulation, terminal formatting, and process exit behavior.
+  - src/rom.rs owns bounded header reads, parser dispatch, full-file MD5 streaming, the RomInfo result model, and I/O errors.
+  - src/formats/mod.rs defines RomFormat, Endianness, ParsedRom, shared title cleanup, and format modules.
+  - src/formats/*.rs each expose parse(&[u8]) -> Option<ParsedRom>. None means “not this format”; parsers must reject short or inconsistent input without panicking.
+  - Runtime dependencies are clap (CLI), comfy-table (rendering), and md-5 (hashing). Format parsing is intentionally implemented in-repository without ROM-parsing libraries.
+  - README.org is the user-facing overview. flake.nix provides packages and development shells for Linux and macOS on x86_64 and aarch64.
+
+  Development workflow:
+  - Preferred environment: nix develop. Build with cargo build or nix build.
+  - Before finishing Rust work, run cargo fmt --check, cargo test, and cargo clippy --all-targets --all-features -- -D warnings from the Nix development shell when Cargo is not already on PATH.
+  - There are currently no committed automated tests. Parser changes should add focused synthetic-header tests, especially for truncation, corrupt offsets, false-positive rejection, and each supported byte order/container.
+  - Preserve bounded memory use: header detection must not read whole large disc images, and hashing must remain streaming.
+  - Detection is content-based. Do not make correctness depend solely on file extensions.
+  - Parser order is part of detection behavior because the first successful parser wins; assess collisions whenever adding or broadening a parser.
+  - Keep user-visible names and columns consistent with RomFormat/Endianness Display implementations and README.org.
+
+  Collaboration constraint:
+  - Documentation and OpenSpec artifacts may be created or revised freely.
+  - Before editing any existing application source, Cargo/Nix build file, or other non-documentation implementation file, obtain explicit approval from the user in the current conversation.
+
+  Known current-state caveats (context, not desired behavior):
+  - Most of the original implementation was AI-generated. Treat format claims as hypotheses to verify against specifications, representative images, and regression tests rather than as established authority.
+  - Only the first 1 MiB is available to parsers, so deep NDS banners, 3DS ExeFS/SMDH data, or CHD metadata may be unavailable; parsers use fallbacks where implemented.
+  - SNES copier-header detection derives the 512-byte offset from the parser buffer length. Because large files are truncated to exactly 1 MiB before parsing, large copier-header ROMs may not be recognized correctly.
+  - N64 little-endian and byte-swapped normalization operates on a 63-byte header slice that is not aligned to four- or two-byte swap units, so the final cartridge-ID bytes merit regression coverage.
+  - Metadata parsing is best-effort and has not been established as authoritative for preservation or archival use.
+
+rules:
+  proposal:
+    - Include explicit goals and non-goals.
+    - Identify affected formats, CLI compatibility, performance implications, and parser-order implications.
+    - Call out whether existing implementation files would need modification so approval can be obtained before apply work.
+  specs:
+    - Describe externally observable behavior with SHALL requirements and concrete WHEN/THEN scenarios.
+    - Cover success, truncated/corrupt input, false-positive rejection, and fallback behavior when relevant.
+    - Do not silently convert a known current-state caveat into desired behavior; state whether a change preserves or fixes it.
+  design:
+    - Document byte offsets, magic values, endianness, bounds checks, parser ordering, and memory/I/O effects for format work.
+    - Explain how malformed data avoids panics and excessive allocation or reads.
+    - Prefer small parser-local changes over new dependencies unless the proposal justifies the dependency.
+  tasks:
+    - Separate documentation/spec work from implementation work.
+    - Put explicit user approval before tasks that edit existing non-documentation files.
+    - Include focused tests and README updates for user-visible format or CLI changes.
+    - End Rust changes with fmt, test, clippy, and an OpenSpec validation step.
+
+operations:
+  apply:
+    guidance:
+      - Do not edit existing non-documentation implementation files until the user explicitly approves those edits in the current conversation.
+      - Implement one parser or behavior slice at a time and keep malformed-input handling non-panicking.
+      - Summarize files changed and verification results concisely.
+  archive:
+    guidance:
+      - Confirm implementation and verification tasks are complete before archiving.
+      - Sync enduring behavior into the main specs and mention any deliberately unresolved caveats.
