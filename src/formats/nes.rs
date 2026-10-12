@@ -70,12 +70,16 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
         mapper_id |= mapper_ext;
     }
 
-    let format = if is_nes2 { RomFormat::Nes2 } else { RomFormat::Nes };
+    let format = if is_nes2 {
+        RomFormat::Nes2
+    } else {
+        RomFormat::Nes
+    };
 
     Some(ParsedRom {
         format,
         game_name: None, // iNES has no title field
-        cart_id: None,    // iNES has no cart ID field
+        cart_id: None,   // iNES has no cart ID field
         endianness: Endianness::Little,
         mapper: Some(mapper_name(mapper_id)),
         expansion_chip: None,

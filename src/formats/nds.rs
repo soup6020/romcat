@@ -3,8 +3,7 @@ use super::{Endianness, ParsedRom, RomFormat, clean_title};
 /// The Nintendo logo at offset 0xC0 in the NDS header.
 /// First 16 bytes used as a quick-check for identification.
 const NINTENDO_LOGO_PREFIX: [u8; 16] = [
-    0x24, 0xFF, 0xAE, 0x51, 0x69, 0x9A, 0xA2, 0x21,
-    0x3D, 0x84, 0x82, 0x0A, 0x84, 0xE4, 0x09, 0xAD,
+    0x24, 0xFF, 0xAE, 0x51, 0x69, 0x9A, 0xA2, 0x21, 0x3D, 0x84, 0x82, 0x0A, 0x84, 0xE4, 0x09, 0xAD,
 ];
 
 /// Minimum header size: we need at least through the Nintendo logo area.
@@ -62,10 +61,11 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
 
     // Validate that game code looks like ASCII letters/digits
     // (helps avoid false positives against GBA ROMs which share the same logo)
-    if let Some(ref id) = cart_id {
-        if !id.chars().all(|c| c.is_ascii_alphanumeric()) {
-            return None;
-        }
+    if cart_id
+        .as_ref()
+        .is_some_and(|id| !id.chars().all(|c| c.is_ascii_alphanumeric()))
+    {
+        return None;
     }
 
     // Unit code at 0x12: 0x00 = NDS, 0x02 = NDS+DSi, 0x03 = DSi only
@@ -83,8 +83,8 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
     // Try to read the full banner title first, fall back to the short 12-byte title
     let banner_offset =
         u32::from_le_bytes([data[0x68], data[0x69], data[0x6A], data[0x6B]]) as usize;
-    let game_name = read_banner_title(data, banner_offset)
-        .or_else(|| clean_title(&data[0x00..0x0C]));
+    let game_name =
+        read_banner_title(data, banner_offset).or_else(|| clean_title(&data[0x00..0x0C]));
 
     Some(ParsedRom {
         format: RomFormat::Nds,

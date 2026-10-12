@@ -137,7 +137,7 @@ fn try_header(data: &[u8], offset: usize) -> Option<SnesHeader> {
     // Title should be printable ASCII
     let printable_count = title_bytes
         .iter()
-        .filter(|&&b| b >= 0x20 && b <= 0x7E)
+        .filter(|&&b| (0x20..=0x7E).contains(&b))
         .count();
     score += printable_count as u32 * 2;
 
@@ -194,7 +194,11 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
     // Pick the best candidate by score
     let header = match (lorom_header, hirom_header) {
         (Some(lo), Some(hi)) => {
-            if hi.score > lo.score { hi } else { lo }
+            if hi.score > lo.score {
+                hi
+            } else {
+                lo
+            }
         }
         (Some(lo), None) => lo,
         (None, Some(hi)) => hi,

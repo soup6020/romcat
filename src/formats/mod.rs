@@ -1,8 +1,8 @@
 pub mod chd;
 pub mod gb;
 pub mod gba;
-pub mod n64;
 pub mod n3ds;
+pub mod n64;
 pub mod nds;
 pub mod nes;
 pub mod ps1;
@@ -96,5 +96,9 @@ pub fn clean_title(bytes: &[u8]) -> Option<String> {
         .map(|&b| b as char)
         .collect();
     let trimmed = s.trim();
-    if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
 }

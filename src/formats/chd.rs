@@ -170,7 +170,7 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
     Some(ParsedRom {
         format: RomFormat::Chd,
         game_name: None, // CHD doesn't store game title in the header
-        cart_id: None,    // CHD doesn't store a serial
+        cart_id: None,   // CHD doesn't store a serial
         endianness: Endianness::Big,
         mapper: Some(mapper),
         expansion_chip: None,

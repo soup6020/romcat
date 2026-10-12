@@ -18,7 +18,7 @@ const CD_SYNC: [u8; 12] = [
 
 /// Read 2048 bytes of data from a given sector number, handling both cooked and raw formats.
 /// Returns None if the sector is out of bounds.
-fn read_sector<'a>(data: &'a [u8], sector: usize, sector_size: usize) -> Option<&'a [u8]> {
+fn read_sector(data: &[u8], sector: usize, sector_size: usize) -> Option<&[u8]> {
     let offset = sector * sector_size;
     let data_offset = if sector_size == SECTOR_RAW {
         offset + RAW_DATA_OFFSET
@@ -98,7 +98,7 @@ fn read_serial(data: &[u8], sector_size: usize) -> Option<String> {
         u32::from_le_bytes([pvd[156 + 10], pvd[156 + 11], pvd[156 + 12], pvd[156 + 13]]) as usize;
 
     // Read root directory sectors and search for SYSTEM.CNF
-    let sectors_needed = (root_size + 2047) / 2048;
+    let sectors_needed = root_size.div_ceil(2048);
     for s in 0..sectors_needed {
         let dir_data = read_sector(data, root_extent + s, sector_size)?;
         if let Some(serial) = find_system_cnf_serial(data, dir_data, sector_size) {
@@ -109,11 +109,7 @@ fn read_serial(data: &[u8], sector_size: usize) -> Option<String> {
 }
 
 /// Search a directory sector for a SYSTEM.CNF entry and extract the serial from it.
-fn find_system_cnf_serial(
-    image: &[u8],
-    dir_data: &[u8],
-    sector_size: usize,
-) -> Option<String> {
+fn find_system_cnf_serial(image: &[u8], dir_data: &[u8], sector_size: usize) -> Option<String> {
     let mut offset = 0;
     while offset + 33 < dir_data.len() {
         let record_len = dir_data[offset] as usize;
@@ -151,12 +147,7 @@ fn find_system_cnf_serial(
 }
 
 /// Read SYSTEM.CNF content and extract the game serial from the BOOT line.
-fn read_system_cnf(
-    image: &[u8],
-    extent: usize,
-    size: usize,
-    sector_size: usize,
-) -> Option<String> {
+fn read_system_cnf(image: &[u8], extent: usize, size: usize, sector_size: usize) -> Option<String> {
     // Read up to the first sector (SYSTEM.CNF is always < 2048 bytes)
     let read_size = size.min(2048);
     let sector_data = read_sector(image, extent, sector_size)?;
@@ -181,12 +172,7 @@ fn read_system_cnf(
 /// Returns something like "SLUS-00123".
 fn parse_serial_from_path(path: &str) -> Option<String> {
     // Strip cdrom prefix and version suffix
-    let name = path
-        .rsplit(['\\', '/'])
-        .next()?
-        .split(';')
-        .next()?
-        .trim();
+    let name = path.rsplit(['\\', '/']).next()?.split(';').next()?.trim();
 
     // Expected format: XXXX_NNN.NN (e.g. SLUS_001.23)
     // Convert to: XXXX-NNNNN (e.g. SLUS-00123)

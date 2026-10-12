@@ -6,5 +6,5 @@ description = "Video game ROM catalog tool - identifies ROM types, game names, a
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-comfy-table = "7"
-md-5 = "0.10"
+comfy-table = "8"
+md-5 = "0.11"

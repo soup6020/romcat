@@ -30,10 +30,8 @@ fn read_smdh_title(smdh: &[u8]) -> Option<String> {
     let long_offset = 0x288;
 
     // Try long title first, fall back to short
-    let title = read_utf16le_string(smdh, long_offset, 0x100)
-        .or_else(|| read_utf16le_string(smdh, short_offset, 0x80));
-
-    title
+    read_utf16le_string(smdh, long_offset, 0x100)
+        .or_else(|| read_utf16le_string(smdh, short_offset, 0x80))
 }
 
 /// Read a null-terminated UTF-16LE string from a buffer.
@@ -135,12 +133,8 @@ pub fn parse(data: &[u8]) -> Option<ParsedRom> {
 
     // Partition table at 0x120: first entry is partition 0
     // Offset (LE u32 in media units) at 0x120, size at 0x124
-    let part0_offset_mu = u32::from_le_bytes([
-        data[0x120],
-        data[0x121],
-        data[0x122],
-        data[0x123],
-    ]) as usize;
+    let part0_offset_mu =
+        u32::from_le_bytes([data[0x120], data[0x121], data[0x122], data[0x123]]) as usize;
 
     if part0_offset_mu == 0 {
         return None;

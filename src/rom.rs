@@ -16,6 +16,8 @@ const MAX_HEADER_READ: u64 = 1024 * 1024;
 /// Buffer size for streaming MD5 computation.
 const MD5_BUF_SIZE: usize = 64 * 1024;
 
+type Parser = fn(&[u8]) -> Option<ParsedRom>;
+
 /// Complete information about a ROM file.
 pub struct RomInfo {
     pub file_name: String,
@@ -79,7 +81,14 @@ fn compute_md5(file: &mut File) -> io::Result<String> {
         }
         hasher.update(&buf[..n]);
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    let digest = hasher.finalize();
+    let mut hex = String::with_capacity(digest.len() * 2);
+    const HEX_DIGITS: &[u8; 16] = b"0123456789abcdef";
+    for byte in digest {
+        hex.push(HEX_DIGITS[(byte >> 4) as usize] as char);
+        hex.push(HEX_DIGITS[(byte & 0x0F) as usize] as char);
+    }
+    Ok(hex)
 }
 
 /// Analyze a ROM file and return its metadata.
@@ -104,7 +113,7 @@ pub fn analyze(path: &Path, compute_hash: bool) -> Result<RomInfo, RomError> {
     // GB/GBC has a different logo check.
     // PS1 relies on ISO 9660 + PLAYSTATION system identifier.
     // SNES is heuristic-based and goes last.
-    let parsers: &[fn(&[u8]) -> Option<ParsedRom>] = &[
+    let parsers: &[Parser] = &[
         formats::chd::parse,
         formats::nes::parse,
         formats::n64::parse,

@@ -5,11 +5,10 @@ use std::path::PathBuf;
 use std::process;
 
 use clap::Parser;
-use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::{Cell, CellAlignment, Color, ContentArrangement, Table};
 
-use rom::{format_size, RomInfo};
+use rom::{RomInfo, format_size};
 
 #[derive(Parser)]
 #[command(
@@ -51,8 +50,7 @@ fn format_color(format: &formats::RomFormat) -> Color {
 fn build_table(roms: &[RomInfo]) -> Table {
     let mut table = Table::new();
     table
-        .load_preset(UTF8_FULL)
-        .apply_modifier(UTF8_ROUND_CORNERS)
+        .load_style(UTF8_FULL.with_rounded_corners())
         .set_content_arrangement(ContentArrangement::Dynamic);
 
     // Determine which optional columns have data
@@ -98,23 +96,15 @@ fn build_table(roms: &[RomInfo]) -> Table {
             row.push(Cell::new(rom.cart_id.as_deref().unwrap_or(dash)));
         }
         row.push(Cell::new(rom.endianness.to_string()));
-        row.push(
-            Cell::new(format_size(rom.file_size)).set_alignment(CellAlignment::Right),
-        );
+        row.push(Cell::new(format_size(rom.file_size)).set_alignment(CellAlignment::Right));
         if has_mapper {
-            row.push(Cell::new(
-                rom.mapper.as_deref().unwrap_or(dash),
-            ));
+            row.push(Cell::new(rom.mapper.as_deref().unwrap_or(dash)));
         }
         if has_expansion {
-            row.push(
-                Cell::new(rom.expansion_chip.as_deref().unwrap_or(dash)).fg(Color::Yellow),
-            );
+            row.push(Cell::new(rom.expansion_chip.as_deref().unwrap_or(dash)).fg(Color::Yellow));
         }
         if has_md5 {
-            row.push(
-                Cell::new(rom.md5.as_deref().unwrap_or("")).fg(Color::DarkGrey),
-            );
+            row.push(Cell::new(rom.md5.as_deref().unwrap_or("")).fg(Color::DarkGrey));
         }
         table.add_row(row);
     }
